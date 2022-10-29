@@ -4,6 +4,7 @@ import connectDatabase from "./config/MongoDb.js";
 import ImportData from "./DataImport.js";
 import productRoute from "./Routes/ProductRoutes.js";
 import userRoute from "./Routes/UserRoutes.js";
+import orderRouter from "./Routes/orderRouter.js";
 
 dotenv.config();
 connectDatabase();
@@ -16,6 +17,8 @@ app.get("/", (req, res) => {
 app.use("/api/import", ImportData);
 app.use("/api/products", productRoute);
 app.use("/api/users", userRoute);
+app.use("/api/orders", orderRouter);
+
 const PORT = process.env.PORT || 1000;
 
 app.listen(PORT, console.log(`Server running on http://localhost:${PORT}`));

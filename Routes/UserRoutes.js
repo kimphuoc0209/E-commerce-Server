@@ -1,6 +1,7 @@
 import express from "express";
 import asyncHandler from "express-async-handler";
-import protect from "../Middleware/AuthMiddleware.js";
+import { protect, admin } from "../Middleware/AuthMiddleware.js";
+
 import User from "../Models/UserModel.js";
 import generateToken from "../utils/generateToken.js";
 
@@ -115,15 +116,11 @@ userRoute.put(
 userRoute.get(
   "/profile/all",
   protect,
+  admin,
   asyncHandler(async (req, res) => {
     const users = await User.find({});
 
-    if (users && req.user.isAdmin) {
-      res.json(users);
-    } else {
-      res.status(401);
-      throw new Error("Invalid Email or Password");
-    }
+    res.json(users);
   })
 );
 
