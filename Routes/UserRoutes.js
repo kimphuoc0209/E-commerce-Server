@@ -106,15 +106,15 @@ userRoute.put(
         token: generateToken(updateUser._id),
       });
     } else {
-      res.status(401);
-      throw new Error("Invalid Email or Password");
+      res.status(404);
+      throw new Error("User not found");
     }
   })
 );
 
 //Get all user
 userRoute.get(
-  "/profile/all",
+  "/",
   protect,
   admin,
   asyncHandler(async (req, res) => {
