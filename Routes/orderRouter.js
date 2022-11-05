@@ -22,7 +22,6 @@ orderRouter.post(
     if (orderItems && orderItems.length === 0) {
       res.status(400);
       throw new Error("No order items");
-      return;
     } else {
       const order = new Order({
         orderItems,
@@ -66,6 +65,21 @@ orderRouter.get(
     } else {
       res.status(400);
       throw new Error("Order not found");
+    }
+  })
+);
+
+// User Login Orders
+orderRouter.get(
+  "/",
+  protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.find({ user: req.user._id }).sort({ _id: -1 });
+    if (order.length == 0) {
+      res.status(404);
+      throw new Error("No order found");
+    } else {
+      res.json(order);
     }
   })
 );
