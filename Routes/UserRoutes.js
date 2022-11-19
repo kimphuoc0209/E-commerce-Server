@@ -23,8 +23,8 @@ userRoute.post(
         createdAt: user.createdAt,
       });
     } else {
-      res.status(401);
-      throw new Error("Invalid Email or Password");
+      res.status(401).json({ message: "Invalid Email or Password" });
+      // throw new Error("Invalid Email or Password");
     }
   })
 );
