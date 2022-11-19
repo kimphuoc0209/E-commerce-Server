@@ -40,15 +40,28 @@ orderRouter.post(
   })
 );
 
-//User login orders
+// //User login orders
+// orderRouter.get(
+//   "/",
+//   protect,
+//   asyncHandler(async (req, res) => {
+//     const order = await Order.find({
+//       user: req.user._id,
+//     }).sort({ _id: -1 });
+//     res.json(order);
+//   })
+// );
+
+// Admin get all orders
 orderRouter.get(
-  "/",
+  "/all",
   protect,
+  admin,
   asyncHandler(async (req, res) => {
-    const order = await Order.find({
-      user: req.user._id,
-    }).sort({ _id: -1 });
-    res.json(order);
+    const orders = await Order.find({})
+      .sort({ _id: -1 })
+      .populate("user", "id name email");
+    res.json(orders);
   })
 );
 
@@ -87,13 +100,13 @@ orderRouter.get(
 
 //Order is Paid
 orderRouter.put(
-  "/:id",
+  "/:id/pay",
   protect,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
     if (order) {
       order.isPaid = true;
-      order.paidAt = Date.now;
+      order.paidAt = Date.now();
       order.paymentResult = {
         id: req.body.id,
         status: req.body.status,
@@ -109,17 +122,22 @@ orderRouter.put(
     }
   })
 );
-
-// Admin get all orders
-orderRouter.get(
-  "/all",
+//Order is Deliver
+orderRouter.put(
+  "/:id/delivered",
   protect,
-  admin,
   asyncHandler(async (req, res) => {
-    const orders = await Order.find()
-      .sort({ _id: -1 })
-      .populate("user", "id name email");
-    res.json(orders);
+    const order = await Order.findById(req.params.id);
+    if (order) {
+      order.isDelivered = true;
+      order.deliveredAt = Date.now();
+
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(400);
+      throw new Error("Order not found");
+    }
   })
 );
 
