@@ -114,7 +114,7 @@ userRoute.put(
 
 //Get all user admin
 userRoute.get(
-  "/profile/all",
+  "/",
   protect,
   admin,
   asyncHandler(async (req, res) => {

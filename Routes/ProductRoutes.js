@@ -122,7 +122,7 @@ productRoute.post(
   })
 );
 
-//Product edit
+//Product update
 productRoute.put(
   "/:id",
   protect,
@@ -131,11 +131,11 @@ productRoute.put(
     const { name, price, description, image, countInStock } = req.body;
     const product = await Product.findById(req.params.id);
     if (product) {
-      product.name = name;
-      product.price = price;
-      product.description = description;
-      product.image = image;
-      product.countInStock = countInStock;
+      product.name = name || product.name;
+      product.price = price || product.price;
+      product.description = description|| product.description;
+      product.image = image|| product.image;
+      product.countInStock = countInStock || product.countInStock;
       const updateProduct = await product.save();
       res.json(updateProduct);
     } else {
