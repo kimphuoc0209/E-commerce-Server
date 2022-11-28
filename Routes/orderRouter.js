@@ -60,6 +60,8 @@ orderRouter.get(
   asyncHandler(async (req, res) => {
     const pageSize = 8;
     const page = Number(req.query.pageNumber) || 1;
+    const count = await Order.countDocuments({});
+
     const orders = await Order.find({})
       .limit(pageSize)
       .skip(pageSize * (page - 1))
