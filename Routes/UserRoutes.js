@@ -120,9 +120,22 @@ userRoute.get(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const users = await User.find({});
-
-    res.json(users);
+    const pageSize = 8;
+    const page = Number(req.query.pageNumber) || 1;
+    const keyword = req.query.keyword
+      ? {
+          name: {
+            $regex: req.query.keyword,
+            $options: "i",
+          },
+        }
+      : {};
+    const count = await User.countDocuments({ ...keyword });
+    const users = await User.find({ ...keyword })
+      .limit(pageSize)
+      .skip(pageSize * (page - 1))
+      .sort({ _id: -1 });
+    res.json({ users, page, pages: Math.ceil(count / pageSize) });
   })
 );
 
