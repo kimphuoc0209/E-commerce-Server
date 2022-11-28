@@ -65,8 +65,7 @@ productRoute.post(
         (r) => r.user.toString() === req.user._id.toString()
       );
       if (alreadyReviewed) {
-        res.status(400);
-        throw new Error("Product already Reviewed");
+        res.status(400).send({ message: "Product already Reviewed" });
       }
       const review = {
         name: req.user.name,
@@ -85,8 +84,7 @@ productRoute.post(
         message: "Reviewed Added",
       });
     } else {
-      res.status(404);
-      throw new Error("Product not found");
+      res.status(404).send({ message: "Product not found" });
     }
   })
 );
@@ -100,8 +98,7 @@ productRoute.post(
     const { name, price, description, image, countInStock } = req.body;
     const productExist = await Product.findOne({ name });
     if (productExist) {
-      res.status(404);
-      throw new Error("Product name already exist");
+      res.status(404).send({ message: "Product name already exist" });
     } else {
       const product = new Product({
         name,
@@ -115,8 +112,7 @@ productRoute.post(
         const createProduct = await product.save();
         res.status(201).json(createProduct);
       } else {
-        res.status(404);
-        throw new Error("Invalid product data");
+        res.status(404).send({ message: "Invalid product data" });
       }
     }
   })
@@ -133,14 +129,13 @@ productRoute.put(
     if (product) {
       product.name = name || product.name;
       product.price = price || product.price;
-      product.description = description|| product.description;
-      product.image = image|| product.image;
+      product.description = description || product.description;
+      product.image = image || product.image;
       product.countInStock = countInStock || product.countInStock;
       const updateProduct = await product.save();
       res.json(updateProduct);
     } else {
-      res.status(404);
-      throw new Error("Product not found");
+      res.status(404).send({ message: "Product not found" });
     }
   })
 );
@@ -156,8 +151,9 @@ productRoute.delete(
       await product.remove();
       res.json({ message: "Product deleted" });
     } else {
-      res.status(404);
-      throw new Error("Product not Found");
+      res.status(404).send({
+        message: "Product not Found",
+      });
     }
   })
 );

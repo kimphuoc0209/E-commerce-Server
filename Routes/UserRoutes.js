@@ -36,8 +36,9 @@ userRoute.post(
     const { name, email, password } = req.body;
     const userExists = await User.findOne({ email });
     if (userExists) {
-      res.status(400);
-      throw new Error("User already exits");
+      res.status(400).send({
+        message: "User already exits",
+      });
     }
 
     const user = await User.create({
@@ -55,8 +56,7 @@ userRoute.post(
         token: generateToken(user._id),
       });
     } else {
-      res.status(400);
-      throw new Error("Invalid User Data");
+      res.status(400).send({ message: "Invalid User Data" });
     }
   })
 );
@@ -77,8 +77,9 @@ userRoute.get(
         createdAt: user.createdAt,
       });
     } else {
-      res.status(401);
-      throw new Error("Invalid Email or Password");
+      res.status(401).send({
+        message: "Invalid Email or Password",
+      });
     }
   })
 );
@@ -106,8 +107,9 @@ userRoute.put(
         token: generateToken(updateUser._id),
       });
     } else {
-      res.status(404);
-      throw new Error("User not found");
+      res.status(404).send({
+        message: "User not found",
+      });
     }
   })
 );

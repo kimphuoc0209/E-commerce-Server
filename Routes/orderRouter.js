@@ -77,8 +77,9 @@ orderRouter.get(
     if (order) {
       res.json(order);
     } else {
-      res.status(400);
-      throw new Error("Order not found");
+      res.status(400).send({
+        message: "Order not found",
+      });
     }
   })
 );
@@ -90,8 +91,9 @@ orderRouter.get(
   asyncHandler(async (req, res) => {
     const order = await Order.find({ user: req.user._id }).sort({ _id: -1 });
     if (order.length == 0) {
-      res.status(404);
-      throw new Error("No order found");
+      res.status(404).send({
+        message: "No order found",
+      });
     } else {
       res.json(order);
     }
@@ -117,8 +119,9 @@ orderRouter.put(
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
-      res.status(400);
-      throw new Error("Order not found");
+      res.status(400).send({
+        message: "Order not found",
+      });
     }
   })
 );
@@ -135,8 +138,9 @@ orderRouter.put(
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
-      res.status(400);
-      throw new Error("Order not found");
+      res.status(400).send({
+        message: "Order not found",
+      });
     }
   })
 );
