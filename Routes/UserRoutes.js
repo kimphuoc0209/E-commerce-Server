@@ -132,4 +132,25 @@ userRoute.get(
   })
 );
 
+//Delete user
+userRoute.delete(
+  "/:id",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    console.log(user);
+    if (user && !user.isAdmin) {
+      await user.remove();
+      res.json({
+        message: "User Deleted",
+      });
+    } else {
+      res.status(404).send({
+        message: "User not found",
+      });
+    }
+  })
+);
+
 export default userRoute;
