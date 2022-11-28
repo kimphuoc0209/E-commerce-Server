@@ -122,16 +122,9 @@ userRoute.get(
   asyncHandler(async (req, res) => {
     const pageSize = 8;
     const page = Number(req.query.pageNumber) || 1;
-    const keyword = req.query.keyword
-      ? {
-          name: {
-            $regex: req.query.keyword,
-            $options: "i",
-          },
-        }
-      : {};
-    const count = await User.countDocuments({ ...keyword });
-    const users = await User.find({ ...keyword })
+
+    const count = await User.countDocuments({});
+    const users = await User.find({})
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .sort({ _id: -1 });
