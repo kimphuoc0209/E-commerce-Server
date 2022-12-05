@@ -7,10 +7,12 @@ import generateToken from "../utils/generateToken.js";
 import dotenv from "dotenv";
 import { uuid } from "uuidv4";
 import bcrypt from "bcryptjs";
+import * as path from "path";
+import { fileURLToPath } from "url";
 import userVerification from "../Models/UserVerificationModel.js";
 dotenv.config();
 const userRoute = express.Router();
-
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 //Add nodemailer
 let transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -27,6 +29,8 @@ transporter.verify((error, success) => {
   if (error) {
     console.log(error);
   } else {
+    console.log();
+
     console.log("Ready to transfer");
     console.log(success);
   }
@@ -43,7 +47,7 @@ const sendVerificationEmail = asyncHandler(async ({ _id, email }, res) => {
     to: email,
     subject: "Verify Your Email",
     html: `<p>Verify your email address to complete the signup and login into your account.</p><p>This link 
-    <b>expires in 6 hours</b>.</p>
+    <b>expires in 1 hours</b>.</p>
     <p>Press <a href=${
       currentUrl + "api/users/verified/" + _id + "/" + uniqueString
     }>here</a> to proceed.</p>`,
@@ -56,7 +60,7 @@ const sendVerificationEmail = asyncHandler(async ({ _id, email }, res) => {
       userId: _id,
       uniqueString: hashedUniqueString,
       createdAt: Date.now(),
-      expiresAt: Date.now() + 60000,
+      expiresAt: Date.now() + 3600000,
     });
     await newVerification.save();
     const sendMail = await transporter.sendMail(mailOptions);
@@ -165,10 +169,11 @@ userRoute.get(
               user.isVerified = true;
               await user.save();
 
-              res.send({
-                status: "Success",
-                message: "Email has been verified",
-              });
+              // res.send({
+              //   status: "Success",
+              //   message: "Email has been verified",
+              // });
+              res.sendFile(path.join(__dirname, "./../views/verified.html"));
             }
           } else {
             let message =
@@ -192,7 +197,7 @@ userRoute.get(
 
 //Verified page route
 userRoute.get("/verified", (req, res) => {
-  res.sendFile(path.join(__dirname, "./views/verified.html"));
+  res.sendFile(path.join(__dirname, "./../views/verified.html"));
 });
 
 //Register
