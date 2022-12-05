@@ -1,11 +1,78 @@
-import express from "express";
+import express, { Router } from "express";
 import asyncHandler from "express-async-handler";
 import { protect, admin } from "../Middleware/AuthMiddleware.js";
-
+import nodemailer from "nodemailer";
 import User from "../Models/UserModel.js";
 import generateToken from "../utils/generateToken.js";
-
+import dotenv from "dotenv";
+import { uuid } from "uuidv4";
+import bcrypt from "bcryptjs";
+import userVerification from "../Models/UserVerificationModel.js";
+dotenv.config();
 const userRoute = express.Router();
+
+//Add nodemailer
+let transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.AUTH_EMAIL,
+    pass: process.env.AUTH_PASS,
+  },
+});
+
+//testing nodemailer
+transporter.verify((error, success) => {
+  if (error) {
+    console.log(error);
+  } else {
+    console.log("Ready to transfer");
+    console.log(success);
+  }
+});
+
+//Verification Email func
+const sendVerificationEmail = asyncHandler(async ({ _id, email }, res) => {
+  //url to be used in the email
+  const currentUrl = "http://localhost:5000/";
+  const uniqueString = uuid() + _id;
+  // mail options
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    to: email,
+    subject: "Verify Your Email",
+    html: `<p>Verify your email address to complete the signup and login into your account.</p><p>This link 
+    <b>expires in 6 hours</b>.</p>
+    <p>Press <a href=${
+      currentUrl + "api/users/verified/" + _id + "/" + uniqueString
+    }>here</a> to proceed.</p>`,
+  };
+
+  // hash the uniqueString
+  const hashedUniqueString = await bcrypt.hash(uniqueString, 10);
+  if (hashedUniqueString) {
+    const newVerification = new userVerification({
+      userId: _id,
+      uniqueString: hashedUniqueString,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60000,
+    });
+    await newVerification.save();
+    const sendMail = await transporter.sendMail(mailOptions);
+    if (sendMail) {
+      res.json({
+        status: "PENDING",
+        message: "Verification email sent",
+      });
+    } else {
+      res.json({
+        status: "Error",
+        message: "Can not send verification email",
+      });
+    }
+  }
+});
 
 //Login
 userRoute.post(
@@ -13,27 +80,127 @@ userRoute.post(
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (user && (await user.matchPassword(password))) {
+    console.log(user);
+    if (!user.isVerified) {
       res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        token: generateToken(user._id),
-        createdAt: user.createdAt,
+        status: "Failed",
+        message: "Email hasn't been verified yet. check your inbox",
       });
     } else {
-      res.status(401).json({ message: "Invalid Email or Password" });
-      // throw new Error("Invalid Email or Password");
+      if (user && (await user.matchPassword(password))) {
+        res.json({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          isAdmin: user.isAdmin,
+          token: generateToken(user._id),
+          isVerified: user.isVerified,
+          createdAt: user.createdAt,
+        });
+      } else {
+        res.status(401).json({ message: "Invalid Email or Password" });
+        // throw new Error("Invalid Email or Password");
+      }
     }
   })
 );
+
+//Email verify
+userRoute.get(
+  "/verified/:userId/:uniqueString",
+  asyncHandler(async (req, res) => {
+    let { userId, uniqueString } = req.params;
+
+    const verifyUser = await userVerification.find({ userId });
+    if (verifyUser) {
+      if (verifyUser.length > 0) {
+        //User verification exists so we proceed
+        const { expiresAt } = verifyUser[0];
+        const hashedUniqueString = verifyUser[0].uniqueString;
+
+        const user = await User.findById(userId);
+
+        //check for expires unique string
+        if (expiresAt < Date.now()) {
+          //record has expires
+          const deleteUserVerificationRecord = await userVerification.deleteOne(
+            {
+              userId: userId,
+            }
+          );
+
+          console.log(deleteUserVerificationRecord);
+
+          if (deleteUserVerificationRecord) {
+            if (user) {
+              await user.remove();
+              let message = "Link has expired. Please sign up again";
+              res.redirect(`/api/users/verified/error=true&message=${message}`);
+            } else {
+              let message = "Clearing user with expired unique string failed";
+              res.redirect(`/api/users/verified/error=true&message=${message}`);
+            }
+          } else {
+            let message =
+              "Error occurred while clearing expired user verification record";
+            res.redirect(`/api/users/verified/error=true&message=${message}`);
+          }
+        } else {
+          // record is exist -> validate the user string
+          // First compare the hashed unique string
+
+          const uniqueStringCompare = await bcrypt.compare(
+            uniqueString,
+            hashedUniqueString
+          );
+          console.log(uniqueStringCompare);
+          if (uniqueStringCompare) {
+            const deleteUserVerificationRecord =
+              await userVerification.deleteOne({
+                userId: userId,
+              });
+            console.log(deleteUserVerificationRecord);
+
+            if (user) {
+              user.isVerified = true;
+              await user.save();
+
+              res.send({
+                status: "Success",
+                message: "Email has been verified",
+              });
+            }
+          } else {
+            let message =
+              "Invalid verification detail passed. Check your inbox.";
+            res.redirect(`/api/users/verified/error=true&message=${message}`);
+          }
+        }
+      } else {
+        //User verification exists so we proceed
+        let message =
+          "Account record doesn't exist or has been verified already. Please sign up or log in.";
+        res.redirect(`/api/users/verified/error=true&message=${message}`);
+      }
+    } else {
+      let message =
+        "An error occurred while checking for existing user verification record";
+      res.redirect(`/api/users/verified/error=true&message=${message}`);
+    }
+  })
+);
+
+//Verified page route
+userRoute.get("/verified", (req, res) => {
+  res.sendFile(path.join(__dirname, "./views/verified.html"));
+});
 
 //Register
 userRoute.post(
   "/",
   asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
+
     const userExists = await User.findOne({ email });
     if (userExists) {
       res.status(400).send({
@@ -46,18 +213,20 @@ userRoute.post(
       email,
       password,
     });
+    await sendVerificationEmail(user, res);
 
-    if (user) {
-      res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        token: generateToken(user._id),
-      });
-    } else {
-      res.status(400).send({ message: "Invalid User Data" });
-    }
+    // if (user) {
+    //   res.status(201).json({
+    //     _id: user._id,
+    //     name: user.name,
+    //     email: user.email,
+    //     isAdmin: user.isAdmin,
+    //     token: generateToken(user._id),
+    //     isVerified: user.isVerified,
+    //   });
+    // } else {
+    //   res.status(400).send({ message: "Invalid User Data" });
+    // }
   })
 );
 
