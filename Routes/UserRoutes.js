@@ -86,8 +86,7 @@ userRoute.post(
     const user = await User.findOne({ email });
     console.log(user);
     if (!user.isVerified) {
-      res.json({
-        status: "Failed",
+      res.status(404).send({
         message: "Email hasn't been verified yet. check your inbox",
       });
     } else {
