@@ -199,6 +199,29 @@ userRoute.get("/verified", (req, res) => {
   res.sendFile(path.join(__dirname, "./../views/verified.html"));
 });
 
+//Register as shipper
+userRoute.post(
+  "/shipper",
+  asyncHandler(async (req, res) => {
+    const { name, email, password } = req.body;
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      res.status(400).send({
+        message: "User already exits",
+      });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      isShipper: true,
+    });
+    await sendVerificationEmail(user, res);
+  })
+);
+
 //Register
 userRoute.post(
   "/",

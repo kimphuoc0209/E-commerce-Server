@@ -39,4 +39,14 @@ const admin = (req, res, next) => {
   }
 };
 
-export { protect, admin };
+const shipper = (req, res, next) => {
+  if (req.user && req.user.isShipper) {
+    next();
+  } else {
+    res.status(401).send({
+      message: "Not authorized as a Shipper",
+    });
+  }
+};
+
+export { protect, admin, shipper };

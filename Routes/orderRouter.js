@@ -135,6 +135,27 @@ orderRouter.put(
     }
   })
 );
+
+//Order has been confirm
+orderRouter.put(
+  "/:id/verified",
+  protect,
+  admin,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (order) {
+      order.isVerified = true;
+
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(400).send({
+        message: "Order not found",
+      });
+    }
+  })
+);
+
 //Order is Deliver
 orderRouter.put(
   "/:id/delivered",
