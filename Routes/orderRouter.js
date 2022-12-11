@@ -58,16 +58,18 @@ orderRouter.get(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const pageSize = 8;
-    const page = Number(req.query.pageNumber) || 1;
+    // const pageSize = 8;
+    // const page = Number(req.query.pageNumber) || 1;
 
-    const count = await Order.countDocuments({});
+    // const count = await Order.countDocuments({});
 
-    const orders = await Order.find({})
-      .limit(pageSize)
-      .skip(pageSize * (page - 1))
-      .sort({ _id: -1 });
-    res.json({ orders, page, pages: Math.ceil(count / pageSize) });
+    const orders = await Order.find({});
+    // .limit(pageSize)
+    // .skip(pageSize * (page - 1))
+    // .sort({ _id: -1 });
+    // res.json({ orders, page, pages: Math.ceil(count / pageSize) });
+    res.json(orders);
+
     // const orders = await Order.find({})
     //   .sort({ _id: -1 })
     //   .populate("user", "id name email");
