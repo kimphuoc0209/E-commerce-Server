@@ -98,6 +98,7 @@ userRoute.post(
           isAdmin: user.isAdmin,
           token: generateToken(user._id),
           isVerified: user.isVerified,
+          isShipper: user.isShipper,
           createdAt: user.createdAt,
         });
       } else {

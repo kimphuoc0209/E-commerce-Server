@@ -64,6 +64,10 @@ const orderSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    confirmShipping: {
+      type: Boolean,
+      default: false,
+    },
     isPicked: {
       type: Boolean,
       default: false,

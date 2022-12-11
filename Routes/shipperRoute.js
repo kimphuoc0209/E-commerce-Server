@@ -8,7 +8,7 @@ import User from "../Models/UserModel.js";
 
 const shipperRoute = express.Router();
 
-//Main page
+//Main page - Get verified order
 shipperRoute.get(
   "/",
   protect,
@@ -19,6 +19,26 @@ shipperRoute.get(
       .sort({ _id: -1 })
       .populate("user", "id name email");
     res.json(orders);
+  })
+);
+
+//Confirm shipping the order
+shipperRoute.put(
+  "/:id/confirm",
+  protect,
+  shipper,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (order) {
+      order.confirmShipping = true;
+
+      await order.save();
+      console.log(order);
+    } else {
+      res.status(400).send({
+        message: "Order not found",
+      });
+    }
   })
 );
 
