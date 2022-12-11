@@ -9,19 +9,19 @@ const productRoute = express.Router();
 productRoute.get(
   "/",
   asyncHandler(async (req, res) => {
-    // const pageSize = 6;
-    // const page = Number(req.query.pageNumber) || 1;
-    // const keyword = req.query.keyword
-    //   ? {
-    //       name: {
-    //         $regex: req.query.keyword,
-    //         $options: "i",
-    //       },
-    //     }
-    //   : {};
-    // const count = await Product.countDocuments({ ...keyword });
+    const pageSize = 6;
+    const page = Number(req.query.pageNumber) || 1;
+    const keyword = req.query.keyword
+      ? {
+          name: {
+            $regex: req.query.keyword,
+            $options: "i",
+          },
+        }
+      : {};
+    const count = await Product.countDocuments({ ...keyword });
     const products = await Product.find({});
-    res.json(products);
+    res.json({ products, page, pages: Math.ceil(count / pageSize) });
   })
 );
 
