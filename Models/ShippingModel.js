@@ -6,13 +6,12 @@ const ShippingSchema = mongoose.Schema({
     require: true,
     ref: "User",
   },
-  order: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Order",
-  },
-  pickedAt: {
-    type: Date,
-  },
+  orders: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Order",
+    },
+  ],
 });
 
 const Shipping = mongoose.model("Shipping", ShippingSchema);

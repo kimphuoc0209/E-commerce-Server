@@ -20,7 +20,10 @@ productRoute.get(
         }
       : {};
     const count = await Product.countDocuments({ ...keyword });
-    const products = await Product.find({});
+    const products = await Product.find({ ...keyword })
+      .limit(pageSize)
+      .skip(pageSize * (page - 1))
+      .sort({ _id: -1 });
     res.json({ products, page, pages: Math.ceil(count / pageSize) });
   })
 );

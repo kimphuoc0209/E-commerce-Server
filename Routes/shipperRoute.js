@@ -50,17 +50,31 @@ shipperRoute.put(
 
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
+
     if (order) {
       order.isPicked = true;
-      const newShipping = new Shipping({
+      order.pickedAt = Date.now();
+      const shippingRecord = await Shipping.findOne({
         shipper: req.user._id,
-        order: req.params.id,
-        pickedAt: Date.now(),
       });
-      await newShipping.save();
-      await order.save();
-      console.log(order);
-      res.json(newShipping);
+      if (shippingRecord) {
+        const newShipping = req.params.id;
+        console.log(newShipping);
+        shippingRecord.orders.push(newShipping);
+        await shippingRecord.save();
+        await order.save();
+
+        res.json(shippingRecord);
+      } else {
+        const newShipping = new Shipping({
+          shipper: req.user._id,
+          orders: [req.params.id],
+        });
+        await newShipping.save();
+        await order.save();
+
+        res.json(newShipping);
+      }
     }
   })
 );
@@ -73,9 +87,7 @@ shipperRoute.put(
 
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
-    const shipping = await Shipping.find({
-      orderId: req.params.id,
-    });
+
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
@@ -85,6 +97,48 @@ shipperRoute.put(
     } else {
       res.status(400).send({
         message: "Order not found",
+      });
+    }
+  })
+);
+
+//Start delivering order
+shipperRoute.put(
+  "/:id/shipping",
+  protect,
+  shipper,
+
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      order.isShipping = true;
+
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(400).send({
+        message: "Order not found",
+      });
+    }
+  })
+);
+
+//Get order has been delivered by shipper
+shipperRoute.get(
+  "/orders",
+  protect,
+  shipper,
+  asyncHandler(async (req, res) => {
+    const shipperDeliveredOrder = await Shipping.findOne({
+      shipper: req.user._id,
+    });
+
+    if (shipperDeliveredOrder) {
+      res.json(shipperDeliveredOrder.orders);
+    } else {
+      res.status(401).send({
+        message: "No orders",
       });
     }
   })

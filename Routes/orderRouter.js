@@ -63,17 +63,17 @@ orderRouter.get(
 
     // const count = await Order.countDocuments({});
 
-    const orders = await Order.find({});
-    // .limit(pageSize)
-    // .skip(pageSize * (page - 1))
-    // .sort({ _id: -1 });
-    // res.json({ orders, page, pages: Math.ceil(count / pageSize) });
-    res.json(orders);
-
-    // const orders = await Order.find({})
-    //   .sort({ _id: -1 })
-    //   .populate("user", "id name email");
+    // const orders = await Order.find({});
+    // // .limit(pageSize)
+    // // .skip(pageSize * (page - 1))
+    // // .sort({ _id: -1 });
+    // // res.json({ orders, page, pages: Math.ceil(count / pageSize) });
     // res.json(orders);
+
+    const orders = await Order.find({})
+      .sort({ _id: -1 })
+      .populate("user", "id name email");
+    res.json(orders);
   })
 );
 
@@ -147,7 +147,7 @@ orderRouter.put(
     const order = await Order.findById(req.params.id);
     if (order) {
       order.isVerified = true;
-
+      order.verifiedAt = Date.now();
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {

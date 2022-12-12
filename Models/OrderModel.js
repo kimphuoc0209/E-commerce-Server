@@ -64,11 +64,21 @@ const orderSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    verifiedAt: {
+      type: Date,
+    },
     confirmShipping: {
       type: Boolean,
       default: false,
     },
     isPicked: {
+      type: Boolean,
+      default: false,
+    },
+    pickedAt: {
+      type: Date,
+    },
+    isShipping: {
       type: Boolean,
       default: false,
     },
