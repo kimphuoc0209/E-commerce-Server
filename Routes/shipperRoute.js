@@ -33,7 +33,7 @@ shipperRoute.put(
       order.confirmShipping = true;
 
       await order.save();
-      console.log(order);
+      res.send(order);
     } else {
       res.status(400).send({
         message: "Order not found",
@@ -138,7 +138,7 @@ shipperRoute.get(
     const shipperDeliveredOrder = await Shipping.findOne({
       shipper: req.user._id,
     });
-
+    console.log(shipperDeliveredOrder);
     if (shipperDeliveredOrder) {
       res.json(shipperDeliveredOrder.orders);
     } else {
