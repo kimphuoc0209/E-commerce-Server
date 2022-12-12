@@ -91,7 +91,10 @@ shipperRoute.put(
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
-
+      if (order.paymentMethod === "COD") {
+        order.isPaid = true;
+        order.paidAt = Date.now();
+      }
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
