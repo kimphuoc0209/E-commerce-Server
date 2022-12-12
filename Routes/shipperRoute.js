@@ -58,8 +58,10 @@ shipperRoute.put(
         shipper: req.user._id,
       });
       if (shippingRecord) {
-        const newShipping = req.params.id;
-        console.log(newShipping);
+        const newShipping = {
+          orderId: req.params.id,
+        };
+
         shippingRecord.orders.push(newShipping);
         await shippingRecord.save();
         await order.save();
@@ -68,7 +70,7 @@ shipperRoute.put(
       } else {
         const newShipping = new Shipping({
           shipper: req.user._id,
-          orders: [req.params.id],
+          orders: [{ orderId: req.params.id }],
         });
         await newShipping.save();
         await order.save();

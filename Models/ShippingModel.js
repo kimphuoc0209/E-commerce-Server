@@ -8,8 +8,10 @@ const ShippingSchema = mongoose.Schema({
   },
   orders: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Order",
+      orderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Order",
+      },
     },
   ],
 });
