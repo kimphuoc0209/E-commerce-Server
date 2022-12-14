@@ -12,6 +12,15 @@ const ShippingSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Order",
       },
+      user: {
+        type: String,
+      },
+      isPaid: {
+        type: Boolean,
+      },
+      totalPrice: {
+        type: Number,
+      },
     },
   ],
 });

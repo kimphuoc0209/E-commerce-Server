@@ -31,9 +31,38 @@ shipperRoute.put(
     const order = await Order.findById(req.params.id);
     if (order) {
       order.confirmShipping = true;
+      const shippingRecord = await Shipping.findOne({
+        shipper: req.user._id,
+      });
+      if (shippingRecord) {
+        const newShipping = {
+          orderId: req.params.id,
+          name: order.user.name,
+          isPaid: order.isPaid,
+          totalPrice: order.totalPrice,
+        };
 
-      await order.save();
-      res.send(order);
+        shippingRecord.orders.push(newShipping);
+        await shippingRecord.save();
+        await order.save();
+
+        res.json(shippingRecord);
+      } else {
+        const newShipping = new Shipping({
+          shipper: req.user._id,
+          orders: [
+            {
+              orderId: req.params.id,
+              name: order.user.name,
+              isPaid: order.isPaid,
+              totalPrice: order.totalPrice,
+            },
+          ],
+        });
+        await newShipping.save();
+        await order.save();
+        res.json(newShipping);
+      }
     } else {
       res.status(400).send({
         message: "Order not found",
@@ -54,30 +83,10 @@ shipperRoute.put(
     if (order) {
       order.isPicked = true;
       order.pickedAt = Date.now();
-      const shippingRecord = await Shipping.findOne({
-        shipper: req.user._id,
-      });
-      if (shippingRecord) {
-        const newShipping = {
-          orderId: req.params.id,
-        };
 
-        shippingRecord.orders.push(newShipping);
-        await shippingRecord.save();
-        await order.save();
-
-        res.json(shippingRecord);
-      } else {
-        const newShipping = new Shipping({
-          shipper: req.user._id,
-          orders: [{ orderId: req.params.id }],
-        });
-        await newShipping.save();
-        await order.save();
-
-        res.json(newShipping);
-      }
+      await order.save();
     }
+    res.json(order);
   })
 );
 
@@ -89,7 +98,9 @@ shipperRoute.put(
 
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
-
+    const shipping = await Shipping.findOne({
+      shipper: req.user._id,
+    });
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
@@ -97,7 +108,10 @@ shipperRoute.put(
         order.isPaid = true;
         order.paidAt = Date.now();
       }
+      shipping.deliveredAt = Date.now();
       const updatedOrder = await order.save();
+      const updatedShipping = await shipping.save();
+      console.log(updatedShipping);
       res.json(updatedOrder);
     } else {
       res.status(400).send({
