@@ -41,6 +41,7 @@ shipperRoute.put(
           orderId: req.params.id,
           user: user.name,
           isPaid: order.isPaid,
+          isDelivered: order.isDelivered,
           totalPrice: order.totalPrice,
         };
 
@@ -57,6 +58,8 @@ shipperRoute.put(
               orderId: req.params.id,
               user: user.name,
               isPaid: order.isPaid,
+              isDelivered: order.isDelivered,
+
               totalPrice: order.totalPrice,
             },
           ],
@@ -118,6 +121,7 @@ shipperRoute.put(
           $set: {
             "orders.$[el].isPaid": true,
             "orders.$[el].deliveredAt": Date.now(),
+            "orders.$[el].isDelivered": true,
           },
         },
         {
