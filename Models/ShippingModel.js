@@ -21,6 +21,9 @@ const ShippingSchema = mongoose.Schema({
       totalPrice: {
         type: Number,
       },
+      deliveredAt: {
+        type: Date,
+      },
     },
   ],
 });
