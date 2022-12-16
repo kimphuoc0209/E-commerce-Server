@@ -35,10 +35,13 @@ orderRouter.post(
         totalPrice,
       });
 
-      orderItems.forEach((obj) => {
-        const product = Product.find({ _id: obj.product });
-        console.log(product);
-      });
+      for (const obj of orderItems) {
+        const product = await Product.findById(obj.product);
+        if (product) {
+          product.countInStock -= obj.qty;
+        }
+        await product.save();
+      }
       const createOrder = await order.save();
       res.status(201).json(createOrder);
     }
