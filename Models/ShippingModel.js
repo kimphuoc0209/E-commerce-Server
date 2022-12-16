@@ -24,6 +24,9 @@ const ShippingSchema = mongoose.Schema({
       deliveredAt: {
         type: Date,
       },
+      isDelivered: {
+        type: Boolean,
+      },
     },
   ],
 });
