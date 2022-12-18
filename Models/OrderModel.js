@@ -70,6 +70,10 @@ const orderSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    cancelOrder: {
+      type: Boolean,
+      default: false,
+    },
     isPicked: {
       type: Boolean,
       default: false,
