@@ -84,9 +84,8 @@ userRoute.post(
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    console.log(user);
     if (!user.isVerified) {
-      res.status(404).send({
+      res.status(401).send({
         message: "Email hasn't been verified yet. check your inbox",
       });
     } else {

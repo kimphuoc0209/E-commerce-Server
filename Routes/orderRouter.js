@@ -166,6 +166,32 @@ orderRouter.put(
   })
 );
 
+//Order has been cancel
+orderRouter.put(
+  "/:id/cancel",
+  protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (order && order.isVerified === false) {
+      (order.cancelOrder = true), await order.save();
+      for (const obj of order.orderItems) {
+        const product = await Product.findById(obj.product);
+        if (product) {
+          product.countInStock += obj.qty;
+        }
+        await product.save();
+      }
+      res.status(201).send({
+        message: "Order has been cancel",
+      });
+    } else {
+      res.status(401).send({
+        message: "Order not found",
+      });
+    }
+  })
+);
+
 // //Order is Deliver
 // orderRouter.put(
 //   "/:id/delivered",
