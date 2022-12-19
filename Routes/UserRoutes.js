@@ -84,26 +84,24 @@ userRoute.post(
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user.isVerified) {
-      res.status(401).send({
-        message: "Email hasn't been verified yet. check your inbox",
+    if (user && (await user.matchPassword(password)) && user.isVerified) {
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        token: generateToken(user._id),
+        isVerified: user.isVerified,
+        isShipper: user.isShipper,
+        createdAt: user.createdAt,
       });
-    } else {
-      if (user && (await user.matchPassword(password))) {
-        res.json({
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          isAdmin: user.isAdmin,
-          token: generateToken(user._id),
-          isVerified: user.isVerified,
-          isShipper: user.isShipper,
-          createdAt: user.createdAt,
-        });
-      } else {
-        res.status(401).json({ message: "Invalid Email or Password" });
-        // throw new Error("Invalid Email or Password");
-      }
+    } else if (user && !user.isVerified) {
+      res.status(401).json({ message: "User has not been verified" });
+      // throw new Error("Invalid Email or Password");
+    }
+     else {
+      res.status(401).json({ message: "Invalid Email or Password" });
+      // throw new Error("Invalid Email or Password");
     }
   })
 );
