@@ -24,7 +24,13 @@ productRoute.get(
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .sort({ _id: -1 });
-    res.json({ products, page, pages: Math.ceil(count / pageSize) });
+    if (products.length > 0) {
+      res.json({ products, page, pages: Math.ceil(count / pageSize) });
+    } else {
+      res.status(401).send({
+        message: "Product not found",
+      });
+    }
   })
 );
 
@@ -34,15 +40,15 @@ productRoute.get(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const pageSize = 8;
-    const page = Number(req.query.pageNumber) || 1;
+    // const pageSize = 8;
+    // const page = Number(req.query.pageNumber) || 1;
 
-    const count = await Product.countDocuments({});
-    const products = await Product.find({})
-      .limit(pageSize)
-      .skip(pageSize * (page - 1))
-      .sort({ _id: -1 });
-    res.json({ products, page, pages: Math.ceil(count / pageSize) });
+    // const count = await Product.countDocuments({});
+    const products = await Product.find({});
+    // .limit(pageSize)
+    // .skip(pageSize * (page - 1))
+    // .sort({ _id: -1 });
+    res.json(products);
   })
 );
 

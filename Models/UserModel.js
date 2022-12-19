@@ -26,6 +26,11 @@ const userSchema = mongoose.Schema(
       require: true,
       default: false,
     },
+    isShipper: {
+      type: Boolean,
+      require: true,
+      default: false,
+    },
   },
   {
     timestamps: true,

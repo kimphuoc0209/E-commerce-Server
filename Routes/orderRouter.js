@@ -2,6 +2,7 @@ import express from "express";
 import asyncHandler from "express-async-handler";
 import { protect, admin } from "../Middleware/AuthMiddleware.js";
 import Order from "../Models/OrderModel.js";
+import Product from "../Models/ProductModel.js";
 
 const orderRouter = express.Router();
 
@@ -34,6 +35,13 @@ orderRouter.post(
         totalPrice,
       });
 
+      for (const obj of orderItems) {
+        const product = await Product.findById(obj.product);
+        if (product) {
+          product.countInStock -= obj.qty;
+        }
+        await product.save();
+      }
       const createOrder = await order.save();
       res.status(201).json(createOrder);
     }
@@ -58,20 +66,22 @@ orderRouter.get(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const pageSize = 8;
-    const page = Number(req.query.pageNumber) || 1;
+    // const pageSize = 8;
+    // const page = Number(req.query.pageNumber) || 1;
 
-    const count = await Order.countDocuments({});
+    // const count = await Order.countDocuments({});
+
+    // const orders = await Order.find({});
+    // // .limit(pageSize)
+    // // .skip(pageSize * (page - 1))
+    // // .sort({ _id: -1 });
+    // // res.json({ orders, page, pages: Math.ceil(count / pageSize) });
+    // res.json(orders);
 
     const orders = await Order.find({})
-      .limit(pageSize)
-      .skip(pageSize * (page - 1))
-      .sort({ _id: -1 });
-    res.json({ orders, page, pages: Math.ceil(count / pageSize) });
-    // const orders = await Order.find({})
-    //   .sort({ _id: -1 })
-    //   .populate("user", "id name email");
-    // res.json(orders);
+      .sort({ _id: -1 })
+      .populate("user", "id name email");
+    res.json(orders);
   })
 );
 
@@ -135,16 +145,17 @@ orderRouter.put(
     }
   })
 );
-//Order is Deliver
+
+//Order has been confirm
 orderRouter.put(
-  "/:id/delivered",
+  "/:id/verified",
   protect,
+  admin,
   asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
     if (order) {
-      order.isDelivered = true;
-      order.deliveredAt = Date.now();
-
+      order.isVerified = true;
+      order.verifiedAt = Date.now();
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
@@ -154,5 +165,51 @@ orderRouter.put(
     }
   })
 );
+
+//Order has been cancel
+orderRouter.put(
+  "/:id/cancel",
+  protect,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (order && order.isVerified === false) {
+      (order.cancelOrder = true), await order.save();
+      for (const obj of order.orderItems) {
+        const product = await Product.findById(obj.product);
+        if (product) {
+          product.countInStock += obj.qty;
+        }
+        await product.save();
+      }
+      res.status(201).send({
+        message: "Order has been cancel",
+      });
+    } else {
+      res.status(401).send({
+        message: "Order not found",
+      });
+    }
+  })
+);
+
+// //Order is Deliver
+// orderRouter.put(
+//   "/:id/delivered",
+//   protect,
+//   asyncHandler(async (req, res) => {
+//     const order = await Order.findById(req.params.id);
+//     if (order) {
+//       order.isDelivered = true;
+//       order.deliveredAt = Date.now();
+
+//       const updatedOrder = await order.save();
+//       res.json(updatedOrder);
+//     } else {
+//       res.status(400).send({
+//         message: "Order not found",
+//       });
+//     }
+//   })
+// );
 
 export default orderRouter;

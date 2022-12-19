@@ -29,7 +29,6 @@ const orderSchema = mongoose.Schema(
     paymentMethod: {
       type: String,
       required: true,
-      default: "Paypal",
     },
     paymentResult: {
       id: { type: String },
@@ -59,6 +58,32 @@ const orderSchema = mongoose.Schema(
     },
     paidAt: {
       type: Date,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verifiedAt: {
+      type: Date,
+    },
+    confirmShipping: {
+      type: Boolean,
+      default: false,
+    },
+    cancelOrder: {
+      type: Boolean,
+      default: false,
+    },
+    isPicked: {
+      type: Boolean,
+      default: false,
+    },
+    pickedAt: {
+      type: Date,
+    },
+    isShipping: {
+      type: Boolean,
+      default: false,
     },
     isDelivered: {
       type: Boolean,

@@ -84,26 +84,24 @@ userRoute.post(
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    console.log(user);
-    if (!user.isVerified) {
-      res.status(404).send({
-        message: "Email hasn't been verified yet. check your inbox",
+    if (user && (await user.matchPassword(password)) && user.isVerified) {
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        token: generateToken(user._id),
+        isVerified: user.isVerified,
+        isShipper: user.isShipper,
+        createdAt: user.createdAt,
       });
-    } else {
-      if (user && (await user.matchPassword(password))) {
-        res.json({
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          isAdmin: user.isAdmin,
-          token: generateToken(user._id),
-          isVerified: user.isVerified,
-          createdAt: user.createdAt,
-        });
-      } else {
-        res.status(401).json({ message: "Invalid Email or Password" });
-        // throw new Error("Invalid Email or Password");
-      }
+    } else if (user && !user.isVerified) {
+      res.status(401).json({ message: "User has not been verified" });
+      // throw new Error("Invalid Email or Password");
+    }
+     else {
+      res.status(401).json({ message: "Invalid Email or Password" });
+      // throw new Error("Invalid Email or Password");
     }
   })
 );
@@ -199,6 +197,29 @@ userRoute.get("/verified", (req, res) => {
   res.sendFile(path.join(__dirname, "./../views/verified.html"));
 });
 
+//Register as shipper
+userRoute.post(
+  "/shipper",
+  asyncHandler(async (req, res) => {
+    const { name, email, password } = req.body;
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      res.status(400).send({
+        message: "User already exits",
+      });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      isShipper: true,
+    });
+    await sendVerificationEmail(user, res);
+  })
+);
+
 //Register
 userRoute.post(
   "/",
@@ -293,15 +314,9 @@ userRoute.get(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const pageSize = 8;
-    const page = Number(req.query.pageNumber) || 1;
+    const users = await User.find({});
 
-    const count = await User.countDocuments({});
-    const users = await User.find({})
-      .limit(pageSize)
-      .skip(pageSize * (page - 1))
-      .sort({ _id: -1 });
-    res.json({ users, page, pages: Math.ceil(count / pageSize) });
+    res.json(users);
   })
 );
 
